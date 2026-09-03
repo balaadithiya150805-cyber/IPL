@@ -99,8 +99,8 @@ export default function Navbar({ onOpenSquad, onOpenLeaderboard, onOpenSummary }
                 <span className="text-xs font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md font-bold">
                   {myTeam.playersBought?.length || 0}/{roomState?.settings?.maxSquadSize || 35}
                 </span>
-                {(myTeam.playersBought?.length || 0) >= 7 && (
-                  <span className="text-[10px] text-emerald-400 font-bold hidden sm:inline" title="Minimum 7 squad met">✓</span>
+                {(myTeam.playersBought?.length || 0) >= (roomState?.settings?.minSquadSize || 7) && (
+                  <span className="text-[10px] text-emerald-400 font-bold hidden sm:inline" title={`Minimum ${roomState?.settings?.minSquadSize || 7} squad met`}>✓</span>
                 )}
               </button>
             )}

@@ -14,6 +14,7 @@ export default function SquadModal({ isOpen, onClose, targetTeam = null }) {
   if (!team) return null;
 
   const maxSquad = roomState?.settings?.maxSquadSize || 35;
+  const minSquad = roomState?.settings?.minSquadSize || 7;
   const maxOverseas = roomState?.settings?.maxOverseas || 8;
   const players = team.playersBought || [];
   const squadCount = players.length;
@@ -35,7 +36,7 @@ export default function SquadModal({ isOpen, onClose, targetTeam = null }) {
   };
 
   // Milestone Progress
-  const isMinMet = squadCount >= 7;
+  const isMinMet = squadCount >= minSquad;
   const isPlayingXIMet = squadCount >= 11;
   const isStandardMet = squadCount >= 18;
   const isMaxReached = squadCount >= maxSquad;
@@ -78,20 +79,20 @@ export default function SquadModal({ isOpen, onClose, targetTeam = null }) {
               <Award className="w-3.5 h-3.5 text-amber-400" /> Squad Milestones ({squadCount} / {maxSquad})
             </span>
             <span className="font-mono text-amber-300">
-              {isMaxReached ? 'MAX SQUAD REACHED' : isStandardMet ? 'STANDARD SQUAD READY' : isPlayingXIMet ? 'PLAYING XI FORMED' : isMinMet ? 'MINIMUM MET' : `${7 - squadCount} MORE NEEDED FOR MIN`}
+              {isMaxReached ? 'MAX SQUAD REACHED' : isStandardMet ? 'STANDARD SQUAD READY' : isPlayingXIMet ? 'PLAYING XI FORMED' : isMinMet ? 'MINIMUM MET' : `${minSquad - squadCount} MORE NEEDED FOR MIN`}
             </span>
           </div>
 
           {/* 4 Milestones Progress Strip */}
           <div className="grid grid-cols-4 gap-2">
-            {/* 1. Min 7 */}
+            {/* 1. Configured minimum */}
             <div className={`p-2 rounded-xl border flex items-center gap-2 transition ${
               isMinMet ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300' : 'bg-slate-900/60 border-white/10 text-slate-400'
             }`}>
               <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isMinMet ? 'text-emerald-400' : 'text-slate-600'}`} />
               <div>
                 <div className="text-[10px] uppercase font-bold">Min Squad</div>
-                <div className="text-xs font-mono font-black">7 Players</div>
+                <div className="text-xs font-mono font-black">{minSquad} Players</div>
               </div>
             </div>
 

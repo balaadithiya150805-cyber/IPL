@@ -103,7 +103,7 @@ export default function AuctionArena() {
                   <div className="bg-slate-900/80 p-2.5 rounded-xl border border-white/5">
                     <span className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-between">
                       <span>Squad Size</span>
-                      {(myTeam.playersBought?.length || 0) >= 7 && (
+                      {(myTeam.playersBought?.length || 0) >= (roomState.settings?.minSquadSize || 7) && (
                         <span className="text-emerald-400 text-[9px] font-bold">MIN MET ✓</span>
                       )}
                     </span>

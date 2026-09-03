@@ -26,6 +26,7 @@ export default function HomePage({ onRoomJoined }) {
     Math.random().toString(36).substring(2, 8).toUpperCase()
   );
   const [startingPurse, setStartingPurse] = useState(5000); // 5000 Lakhs = 50 Cr
+  const [minSquadSize, setMinSquadSize] = useState(7);
   const [maxSquadSize, setMaxSquadSize] = useState(35);
   const [timerDuration, setTimerDuration] = useState(4);
 
@@ -98,6 +99,7 @@ export default function HomePage({ onRoomJoined }) {
           roomId: customRoomCode.trim().toUpperCase(),
           adminName: adminName.trim() || 'Auctioneer',
           startingPurse: Number(startingPurse),
+          minSquadSize: Number(minSquadSize),
           maxSquadSize: Number(maxSquadSize),
           timerDuration: Number(timerDuration)
         })
@@ -323,7 +325,7 @@ export default function HomePage({ onRoomJoined }) {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Starting Purse */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
@@ -356,6 +358,21 @@ export default function HomePage({ onRoomJoined }) {
                   <option value={20}>20 Players</option>
                   <option value={35}>35 Players (Default)</option>
                 </select>
+              </div>
+
+              {/* Timer Duration */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
+                  Min Squad
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max={maxSquadSize}
+                  value={minSquadSize}
+                  onChange={(e) => setMinSquadSize(Math.min(Number(e.target.value) || 1, maxSquadSize))}
+                  className="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-purple-400"
+                />
               </div>
 
               {/* Timer Duration */}

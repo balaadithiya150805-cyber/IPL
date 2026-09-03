@@ -27,18 +27,18 @@ class AuctionEngine {
   }
 
   // Calculate squad milestone indicators
-  getSquadMilestones(squadSize, maxSquadSize = 35) {
+  getSquadMilestones(squadSize, maxSquadSize = 35, minSquadSize = 7) {
     return {
       current: squadSize,
-      minRequired: 7,
+      minRequired: minSquadSize,
       playingXI: 11,
       standardRoster: 18,
       maxLimit: maxSquadSize,
-      isMinMet: squadSize >= 7,
+      isMinMet: squadSize >= minSquadSize,
       isPlayingXIMet: squadSize >= 11,
       isStandardMet: squadSize >= 18,
       isMaxReached: squadSize >= maxSquadSize,
-      slotsLeftToMin: Math.max(0, 7 - squadSize),
+      slotsLeftToMin: Math.max(0, minSquadSize - squadSize),
       slotsLeftToXI: Math.max(0, 11 - squadSize),
       slotsLeftToMax: Math.max(0, maxSquadSize - squadSize)
     };
@@ -90,7 +90,7 @@ class AuctionEngine {
       settings: {
         startingPurse: Number(startingPurse) || 5000, // In Lakhs (5000 = 50 Cr)
         maxSquadSize: Number(maxSquadSize) || 35,
-        minSquadSize: Number(minSquadSize) || 7, // 7 minimum players per squad
+        minSquadSize: Math.min(Number(minSquadSize) || 7, Number(maxSquadSize) || 35),
         playingXISize: 11,
         standardSquadSize: 18,
         maxOverseas: Number(maxOverseas) || 8,
@@ -141,7 +141,7 @@ class AuctionEngine {
         squadSize: currentSquadSize,
         squadCount: currentSquadSize,
         overseasCount: (t.playersBought || []).filter(p => p.isOverseas).length,
-        milestones: this.getSquadMilestones(currentSquadSize, room.settings.maxSquadSize),
+        milestones: this.getSquadMilestones(currentSquadSize, room.settings.maxSquadSize, room.settings.minSquadSize),
         scores: this.calculateTeamScores(t, room)
       };
     });
@@ -352,14 +352,14 @@ class AuctionEngine {
       return { error: `Minimum required bid is ₹${(nextMin / 100).toFixed(2)} Cr` };
     }
 
-    // Minimum Reserve Validation to ensure franchise can meet minimum 7 players requirement
+    // Minimum reserve validation for the configured squad size
     const prospectiveSquadCount = currentSquadSize + 1; // including this prospective player
     const remainingSlotsToMin = Math.max(0, room.settings.minSquadSize - prospectiveSquadCount);
     const requiredReserve = remainingSlotsToMin * room.settings.minReservePerSlot;
 
     if (team.remainingPurse - bidAmount < requiredReserve) {
       return { 
-        error: `Insufficient purse! You must maintain a reserve of ₹${(requiredReserve / 100).toFixed(2)} Cr to complete the minimum 7-player squad.` 
+        error: `Insufficient purse! You must maintain a reserve of ₹${(requiredReserve / 100).toFixed(2)} Cr to complete the minimum ${room.settings.minSquadSize}-player squad.`
       };
     }
 
@@ -459,7 +459,7 @@ class AuctionEngine {
         spentPurse: winningTeam.spentPurse,
         squadSize: winningTeam.squadSize,
         squadCount: winningTeam.squadSize,
-        milestones: this.getSquadMilestones(winningTeam.squadSize, room.settings.maxSquadSize),
+        milestones: this.getSquadMilestones(winningTeam.squadSize, room.settings.maxSquadSize, room.settings.minSquadSize),
         scores: this.calculateTeamScores(winningTeam, room)
       },
       soldPrice

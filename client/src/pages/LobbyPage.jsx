@@ -125,9 +125,9 @@ export default function LobbyPage() {
               <Award className="w-4 h-4" /> Official Auction Guidelines
             </h3>
             <ul className="space-y-1.5 list-disc list-inside">
-              <li><b>Squad Milestones:</b> Minimum <b>7 players</b> required per squad (Playing XI: 11, Standard: 18, Maximum Limit: <b>{settings?.maxSquadSize || 35} players</b>).</li>
+              <li><b>Squad Milestones:</b> Minimum <b>{settings?.minSquadSize || 7} players</b> required per squad (Playing XI: 11, Standard: 18, Maximum Limit: <b>{settings?.maxSquadSize || 35} players</b>).</li>
               <li><b>Purse Strategy:</b> You have {formatLakhs(settings?.startingPurse)} starting purse to recruit your squad.</li>
-              <li><b>Reserve Requirement:</b> You must maintain ₹20 Lakhs per unfilled slot until you reach the minimum 7-player squad threshold.</li>
+              <li><b>Reserve Requirement:</b> You must maintain ₹20 Lakhs per unfilled slot until you reach the minimum {settings?.minSquadSize || 7}-player squad threshold.</li>
               <li><b>Overseas Quota:</b> Maximum {settings?.maxOverseas || 8} overseas international players per franchise squad.</li>
               <li><b>Bidding Increments:</b> Under ₹1 Cr (+10L), ₹1-2 Cr (+20L), ₹2-5 Cr (+25L), Above ₹5 Cr (+50L).</li>
             </ul>

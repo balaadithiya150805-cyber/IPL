@@ -26,7 +26,7 @@ export default function BiddingControls({ isPaused }) {
   const isSquadFull = squadCount >= maxSquadSize;
   const isOverseasFull = currentActivePlayer?.isOverseas && overseasCount >= maxOverseas;
 
-  // Reserve check (20L per unfilled slot to reach minimum 7 players)
+  // Reserve check (20L per unfilled slot to reach the configured minimum)
   const minReservePerSlot = roomState?.settings?.minReservePerSlot ?? 20;
   const remainingSlotsToMin = Math.max(0, minSquadSize - (squadCount + 1));
   const requiredReserve = remainingSlotsToMin * minReservePerSlot;
@@ -62,10 +62,10 @@ export default function BiddingControls({ isPaused }) {
             <Users className="w-3.5 h-3.5 text-cyan-400" />
             <span>Squad:</span>
             <span className="font-bold text-white font-mono">{squadCount}/{maxSquadSize}</span>
-            {squadCount >= 7 ? (
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" title="Minimum 7 players met" />
+            {squadCount >= minSquadSize ? (
+              <CheckCircle2 className="w-3 h-3 text-emerald-400" title={`Minimum ${minSquadSize} players met`} />
             ) : (
-              <span className="text-[10px] text-amber-400 font-semibold">(Min 7)</span>
+              <span className="text-[10px] text-amber-400 font-semibold">(Min {minSquadSize})</span>
             )}
           </div>
 
@@ -145,7 +145,7 @@ export default function BiddingControls({ isPaused }) {
       {hasInsufficientPurse && !isSelfHighestBidder && !isSquadFull && (
         <div className="mt-3 flex items-center gap-2 text-xs text-rose-400 bg-rose-950/40 p-2.5 rounded-xl border border-rose-500/30">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>Insufficient purse! Minimum reserve of {formatLakhs(requiredReserve)} required to reach the minimum squad of 7 players.</span>
+          <span>Insufficient purse! Minimum reserve of {formatLakhs(requiredReserve)} required to reach the minimum squad of {minSquadSize} players.</span>
         </div>
       )}
 

@@ -91,7 +91,7 @@ export default function Leaderboard({ isOpen, onClose, onSelectTeam }) {
                       <div className="font-mono font-bold text-white text-sm">
                         {team.squadCount || 0} <span className="text-[11px] text-slate-400 font-normal">/ {roomState?.settings?.maxSquadSize || 35}</span>
                       </div>
-                      {(team.squadCount || 0) >= 7 && (
+                      {(team.squadCount || 0) >= (roomState?.settings?.minSquadSize || 7) && (
                         <span className="text-[9px] font-bold text-emerald-400 uppercase">Min Met</span>
                       )}
                     </div>

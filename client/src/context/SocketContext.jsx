@@ -30,10 +30,7 @@ export function SocketProvider({ children }) {
 
   // Initialize socket connection
   useEffect(() => {
-    // In dev Vite proxy points to backend, or connect explicitly to localhost:5000 / window.location.origin
-    const socketUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000' 
-      : window.location.origin;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],

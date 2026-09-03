@@ -4,6 +4,8 @@ import { IPL_FRANCHISES, CUSTOM_BADGES } from '../utils/teams';
 import TeamBadge from '../components/TeamBadge';
 import { Gavel, Users, Shield, Sparkles, ArrowRight, Play, Trophy, Check } from 'lucide-react';
 
+const API_URL = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
+
 export default function HomePage({ onRoomJoined }) {
   const { joinRoom, addToast } = useSocket();
 
@@ -89,7 +91,7 @@ export default function HomePage({ onRoomJoined }) {
 
     // Call REST endpoint to create room in engine
     try {
-      const response = await fetch('/api/rooms/create', {
+      const response = await fetch(`${API_URL}/api/rooms/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

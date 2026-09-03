@@ -14,7 +14,7 @@ const server = http.createServer(app);
 
 // Enable CORS for frontend Vite development & production
 app.use(cors({
-  origin: '*',
+  origin: process.env.FRONTEND_URL || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
@@ -23,7 +23,7 @@ app.use(express.json());
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: process.env.FRONTEND_URL || '*',
     methods: ['GET', 'POST']
   },
   pingTimeout: 60000,
@@ -51,7 +51,7 @@ connectDB().then(() => {
 🏆 IPL MOCK AUCTION SERVER RUNNING
 🚀 Port: ${PORT}
 ⚡ WebSocket: Socket.io Enabled
-🏏 Health: http://localhost:${PORT}/health
+  🏏 Health: /health
 ===============================================
     `);
   });

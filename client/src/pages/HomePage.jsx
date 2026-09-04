@@ -4,7 +4,10 @@ import { IPL_FRANCHISES, CUSTOM_BADGES } from '../utils/teams';
 import TeamBadge from '../components/TeamBadge';
 import { Gavel, Users, Shield, Sparkles, ArrowRight, Play, Trophy, Check } from 'lucide-react';
 
-const API_URL = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
+const API_URL = (
+  import.meta.env.VITE_API_URL
+  || (import.meta.env.DEV ? window.location.origin : 'http://localhost:5000')
+).replace(/\/$/, '');
 
 export default function HomePage({ onRoomJoined }) {
   const { joinRoom, addToast } = useSocket();
@@ -105,7 +108,11 @@ export default function HomePage({ onRoomJoined }) {
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `API request failed with status ${response.status}`);
+      }
+
       if (!data.success) {
         addToast(data.error || 'Failed to create room', 'error');
         setIsSubmitting(false);
@@ -129,7 +136,13 @@ export default function HomePage({ onRoomJoined }) {
       }
     } catch (err) {
       setIsSubmitting(false);
-      addToast(`Error: ${err.message}`, 'error');
+      const isNetworkError = err instanceof TypeError && err.message.toLowerCase().includes('fetch');
+      addToast(
+        isNetworkError
+          ? 'Cannot reach the auction server. Check the Netlify VITE_API_URL and Render service.'
+          : `Error: ${err.message}`,
+        'error'
+      );
     }
   };
 

@@ -30,7 +30,8 @@ export function SocketProvider({ children }) {
 
   // Initialize socket connection
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL
+      || (import.meta.env.DEV ? window.location.origin : 'http://localhost:5000');
 
     const newSocket = io(socketUrl, {
       transports: ['websocket', 'polling'],

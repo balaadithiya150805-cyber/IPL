@@ -34,6 +34,8 @@ const roomSchema = new mongoose.Schema({
   timerTimeLeft: { type: Number, default: 4 },
   timerActive: { type: Boolean, default: false },
   playerPool: [Object],
+  teams: [Object],
+  chatFeed: [Object],
   completedPlayers: [Object],
   unsoldPlayers: [Object]
 }, { timestamps: true });

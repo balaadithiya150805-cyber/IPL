@@ -5,7 +5,7 @@ export function setupAuctionSockets(io) {
     console.log(`🔌 Client connected: ${socket.id}`);
 
     // 1. JOIN ROOM
-    socket.on('join_room', (data, callback) => {
+    socket.on('join_room', async (data, callback) => {
       const { roomId, role = 'team', teamName, ownerName, shortCode, color, logoBadge, teamId } = data || {};
       
       if (!roomId) {
@@ -13,7 +13,7 @@ export function setupAuctionSockets(io) {
         return;
       }
 
-      const result = auctionEngine.joinRoom({
+      const result = await auctionEngine.joinRoom({
         roomId: roomId.toUpperCase().trim(),
         socketId: socket.id,
         role,

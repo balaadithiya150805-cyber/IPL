@@ -186,8 +186,11 @@ class AuctionEngine {
   }
 
   // Join Room as Admin or Franchise Team
-  joinRoom({ roomId, socketId, role = 'team', teamName, ownerName, shortCode, color, logoBadge, teamId }) {
+  async joinRoom({ roomId, socketId, role = 'team', teamName, ownerName, shortCode, color, logoBadge, teamId }) {
     let room = this.rooms.get(roomId);
+    if (!room) {
+      room = await this.restoreRoomFromDB(roomId);
+    }
     if (!room) {
       return { error: 'Room not found. Check the 6-character code.' };
     }
@@ -201,6 +204,7 @@ class AuctionEngine {
         text: `Auctioneer (${room.adminName}) has connected.`,
         type: 'announcement'
       });
+      this.syncRoomToDB(room).catch(() => {});
       return { success: true, role: 'admin', room: this.getRoomState(roomId) };
     }
 
@@ -245,6 +249,7 @@ class AuctionEngine {
       text: `${existingTeam.teamName} (${existingTeam.ownerName}) entered the auction room.`,
       type: 'announcement'
     });
+    this.syncRoomToDB(room).catch(() => {});
 
     return { 
       success: true, 
@@ -705,12 +710,58 @@ class AuctionEngine {
           currentBid: roomState.currentBid,
           highestBidderTeamId: roomState.highestBidder?.teamId || null,
           highestBidderTeamName: roomState.highestBidder?.teamName || null,
-          currentActivePlayerId: roomState.currentActivePlayer?.id || null
+          currentActivePlayerId: roomState.currentActivePlayer?.id || null,
+          adminName: roomState.adminName,
+          playerPool: roomState.playerPool,
+          teams: Array.from(roomState.teams.values()),
+          chatFeed: roomState.chatFeed,
+          completedPlayers: roomState.completedPlayers,
+          unsoldPlayers: roomState.unsoldPlayers,
+          timerTimeLeft: roomState.timer.timeLeft,
+          timerActive: roomState.timer.isActive
         },
         { upsert: true }
       );
     } catch {
       // Ignored for fast in-memory execution
+    }
+  }
+
+  async restoreRoomFromDB(roomId) {
+    try {
+      const savedRoom = await Room.findOne({ roomId }).lean();
+      if (!savedRoom) return null;
+
+      const roomState = {
+        roomId: savedRoom.roomId,
+        adminId: savedRoom.adminId || null,
+        isActive: Boolean(savedRoom.isActive),
+        adminName: savedRoom.adminName || 'Auctioneer',
+        adminSocketId: null,
+        status: savedRoom.status || 'lobby',
+        settings: savedRoom.settings || {},
+        teams: new Map((savedRoom.teams || []).map(team => [team.teamId, team])),
+        playerPool: savedRoom.playerPool || JSON.parse(JSON.stringify(DEFAULT_PLAYER_POOL)),
+        playerQueueIndex: 0,
+        currentActivePlayer: null,
+        currentBid: savedRoom.currentBid || 0,
+        highestBidder: savedRoom.highestBidderTeamId
+          ? { teamId: savedRoom.highestBidderTeamId, teamName: savedRoom.highestBidderTeamName }
+          : null,
+        bidHistory: savedRoom.bidHistory || [],
+        timer: {
+          timeLeft: savedRoom.timerTimeLeft || savedRoom.settings?.timerDuration || 4,
+          isActive: Boolean(savedRoom.timerActive)
+        },
+        completedPlayers: savedRoom.completedPlayers || [],
+        unsoldPlayers: savedRoom.unsoldPlayers || [],
+        chatFeed: savedRoom.chatFeed || []
+      };
+
+      this.rooms.set(roomId, roomState);
+      return roomState;
+    } catch {
+      return null;
     }
   }
 }

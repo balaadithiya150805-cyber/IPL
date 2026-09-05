@@ -53,16 +53,65 @@ class AuctionEngine {
     };
   }
 
+  getRoleType(player) {
+    const role = (player.role || '').toLowerCase();
+    const specialty = (player.stats?.specialty || '').toLowerCase();
+
+    if (role.includes('wicket')) return 'wicketkeeper';
+    if (role.includes('all')) return 'allRounder';
+    if (role.includes('batter')) return 'batter';
+    if (specialty.includes('spin') || specialty.includes('spinner')) return 'spinBowler';
+    if (specialty.includes('fast') || specialty.includes('pace')) return 'fastBowler';
+    return role.includes('bowl') ? 'bowler' : 'other';
+  }
+
+  getTargetRoleCounts(squadSize) {
+    if (squadSize < 7) {
+      return { batter: 3, wicketkeeper: 1, allRounder: 1, fastBowler: 1, spinBowler: 1 };
+    }
+
+    const targetRoles = { batter: 3, wicketkeeper: 1, allRounder: 1, fastBowler: 1, spinBowler: 1 };
+    const flexibleRoles = ['batter', 'allRounder', 'fastBowler', 'spinBowler'];
+    for (let index = 0; index < squadSize - 7; index += 1) {
+      targetRoles[flexibleRoles[index % flexibleRoles.length]] += 1;
+    }
+    return targetRoles;
+  }
+
+  calculatePlayerPerformanceScore(player) {
+    const stats = player.stats || {};
+    const battingScore = Math.min(1, (Number(stats.runs) || 0) / 7000) * 0.55
+      + Math.min(1, (Number(stats.strikeRate) || 0) / 160) * 0.45;
+    const economyScore = stats.economy > 0
+      ? Math.max(0, Math.min(1, (10.5 - Number(stats.economy)) / 4.5))
+      : 0;
+    const bowlingScore = Math.min(1, (Number(stats.wickets) || 0) / 180) * 0.6
+      + economyScore * 0.4;
+    const roleType = this.getRoleType(player);
+
+    if (roleType === 'bowler' || roleType === 'fastBowler' || roleType === 'spinBowler') return bowlingScore;
+    if (roleType === 'allRounder') return (battingScore + bowlingScore) / 2;
+    return battingScore;
+  }
+
   calculateTeamScores(team, room) {
     const players = team.playersBought || [];
     const squadSize = players.length;
     const indianCount = players.filter(player => !player.isOverseas && player.nationality !== 'Overseas').length;
-    const roleCount = new Set(players.map(player => player.role).filter(Boolean)).size;
-    const squadBalanceScore = Math.min(70, Math.round(
-      Math.min(squadSize / room.settings.minSquadSize, 1) * 45 +
-      Math.min(indianCount, 1) * 10 +
-      Math.min(roleCount / 4, 1) * 15
-    ));
+    const targetRoles = this.getTargetRoleCounts(room.settings.minSquadSize);
+    const roleCounts = players.reduce((counts, player) => {
+      const roleType = this.getRoleType(player);
+      if (roleType in targetRoles) counts[roleType] += 1;
+      return counts;
+    }, { batter: 0, wicketkeeper: 0, allRounder: 0, fastBowler: 0, spinBowler: 0 });
+    const roleCoverage = Object.keys(targetRoles).reduce((score, roleType) => (
+      score + Math.min(roleCounts[roleType] / targetRoles[roleType], 1)
+    ), 0) / Object.keys(targetRoles).length;
+    const squadBalanceScore = Math.round(roleCoverage * 45);
+    const playerPerformanceScore = Math.round(
+      (players.length ? players.reduce((sum, player) => sum + this.calculatePlayerPerformanceScore(player), 0) / players.length : 0) * 25
+    );
+    const roleCount = Object.values(roleCounts).filter(count => count > 0).length;
     const moneyManagementScore = Math.min(10, Math.max(0, Math.round((team.remainingPurse / team.totalPurse) * 10)));
     const strategyScore = Math.min(10, Math.round(
       Math.min(roleCount / 4, 1) * 5 + Math.min(indianCount / Math.max(squadSize, 1), 1) * 5
@@ -70,13 +119,17 @@ class AuctionEngine {
     const timeManagementScore = Math.min(10, Math.round(
       Math.min((team.bidCount || 0) / Math.max(squadSize, 1), 1) * 10
     ));
+    const hasRequiredRoles = Object.keys(targetRoles).every(roleType => roleCounts[roleType] >= targetRoles[roleType]);
     return {
       squadBalanceScore,
+      playerPerformanceScore,
       moneyManagementScore,
       strategyScore,
       timeManagementScore,
-      totalScore: squadBalanceScore + moneyManagementScore + strategyScore + timeManagementScore,
-      isEligible: squadSize >= room.settings.minSquadSize && indianCount >= 1
+      totalScore: squadBalanceScore + playerPerformanceScore + moneyManagementScore + strategyScore + timeManagementScore,
+      roleCounts,
+      targetRoles,
+      isEligible: squadSize >= room.settings.minSquadSize && indianCount >= 1 && hasRequiredRoles
     };
   }
 
@@ -452,7 +505,8 @@ class AuctionEngine {
       soldPrice: soldPrice,
       imageURL: player.imageURL,
       isOverseas: player.isOverseas,
-      nationality: player.nationality
+      nationality: player.nationality,
+      stats: player.stats
     });
 
     winningTeam.squadSize = winningTeam.playersBought.length;

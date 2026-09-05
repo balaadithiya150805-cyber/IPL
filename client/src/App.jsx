@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { SoundProvider } from './context/SoundContext';
 import { SocketProvider, useSocket } from './context/SocketContext';
 import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
-import AuctionArena from './pages/AuctionArena';
 import ToastContainer from './components/ToastContainer';
 import InteractiveShell from './components/InteractiveShell';
+
+const AuctionArena = lazy(() => import('./pages/AuctionArena'));
 
 function MainRouter() {
   const { roomState } = useSocket();
@@ -21,14 +22,18 @@ function MainRouter() {
   }
 
   // 3. If room is active, paused, or completed, show Live Auction Arena
-  return <AuctionArena />;
+  return (
+    <Suspense fallback={<div className="min-h-screen" aria-busy="true" />}>
+      <AuctionArena />
+    </Suspense>
+  );
 }
 
 export default function App() {
   return (
     <SoundProvider>
       <SocketProvider>
-        <div className="min-h-screen bg-[#070b14] text-slate-100 selection:bg-amber-500 selection:text-black">
+        <div className="min-h-screen bg-transparent text-slate-100 selection:bg-amber-500 selection:text-black">
           <InteractiveShell>
             <MainRouter />
             <ToastContainer />

@@ -11,13 +11,15 @@ export default function SoldCelebration() {
 
   useEffect(() => {
     if (lastSoldEvent) {
+      let interval;
+
       // Fire celebratory confetti cannons
       try {
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
         const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
-        const interval = setInterval(function() {
+        interval = setInterval(function() {
           const timeLeft = animationEnd - Date.now();
           if (timeLeft <= 0) {
             return clearInterval(interval);
@@ -33,7 +35,10 @@ export default function SoldCelebration() {
         clearSoldEvent();
       }, 6000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timer);
+      };
     }
   }, [lastSoldEvent, clearSoldEvent]);
 

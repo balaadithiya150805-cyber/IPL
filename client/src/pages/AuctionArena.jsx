@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { formatLakhs } from '../utils/formatters';
 import Navbar from '../components/Navbar';
@@ -10,9 +10,9 @@ import SquadModal from '../components/SquadModal';
 import Leaderboard from '../components/Leaderboard';
 import SummaryModal from '../components/SummaryModal';
 import SoldCelebration from '../components/SoldCelebration';
-import AuctionScene from '../components/AuctionScene';
-import ToastContainer from '../components/ToastContainer';
 import { Users, Wallet, Trophy, Globe2, Sparkles, Flame } from 'lucide-react';
+
+const AuctionScene = lazy(() => import('../components/AuctionScene'));
 
 export default function AuctionArena() {
   const { roomState, userRole, myTeam, timerTick } = useSocket();
@@ -45,7 +45,9 @@ export default function AuctionArena() {
 
   return (
     <div className="auction-arena min-h-screen flex flex-col text-slate-100 pb-10">
-      <AuctionScene hasBid={Boolean(currentBid)} player={currentActivePlayer} />
+      <Suspense fallback={null}>
+        <AuctionScene hasBid={Boolean(currentBid)} player={currentActivePlayer} />
+      </Suspense>
       {/* Top Navbar */}
       <Navbar
         onOpenSquad={handleOpenMySquad}
@@ -140,7 +142,6 @@ export default function AuctionArena() {
       />
 
       <SoldCelebration />
-      <ToastContainer />
     </div>
   );
 }

@@ -9,6 +9,27 @@ class AuctionEngine {
     this.rooms = new Map(); // roomId -> RoomState
     this.socketToUser = new Map(); // socketId -> { roomId, teamId, role }
     this.timers = new Map(); // roomId -> intervalId
+    this.roomRetentionMs = 30 * 60 * 1000;
+    this.cleanupInterval = setInterval(() => this.cleanupInactiveRooms(), 10 * 60 * 1000);
+    this.cleanupInterval.unref?.();
+  }
+
+  cleanupInactiveRooms() {
+    const now = Date.now();
+
+    for (const [roomId, room] of this.rooms) {
+      const hasConnectedParticipant = Boolean(
+        room.adminSocketId || Array.from(room.teams.values()).some(team => team.socketId)
+      );
+
+      if (hasConnectedParticipant) continue;
+
+      const lastActivity = room.lastActivityAt ? new Date(room.lastActivityAt).getTime() : now;
+      if (now - lastActivity < this.roomRetentionMs) continue;
+
+      this.stopTimer(roomId);
+      this.rooms.delete(roomId);
+    }
   }
 
   // Calculate dynamic IPL bid increment based on current bid
@@ -145,6 +166,7 @@ class AuctionEngine {
 
     const roomState = {
       roomId: code,
+      lastActivityAt: new Date(),
       adminId: null,
       isActive: false,
       adminName: adminName || 'Auctioneer',
@@ -185,6 +207,7 @@ class AuctionEngine {
   getRoomState(roomId) {
     const room = this.rooms.get(roomId);
     if (!room) return null;
+    room.lastActivityAt = new Date();
 
     const teamsArray = Array.from(room.teams.values()).map(t => {
       const currentSquadSize = (t.playersBought || []).length;
@@ -752,6 +775,7 @@ class AuctionEngine {
     this.socketToUser.delete(socketId);
 
     if (!room) return null;
+    room.lastActivityAt = new Date();
 
     if (role === 'admin') {
       room.adminSocketId = null;
@@ -801,6 +825,7 @@ class AuctionEngine {
 
       const roomState = {
         roomId: savedRoom.roomId,
+        lastActivityAt: new Date(),
         adminId: savedRoom.adminId || null,
         isActive: Boolean(savedRoom.isActive),
         adminName: savedRoom.adminName || 'Auctioneer',

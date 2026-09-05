@@ -29,8 +29,8 @@ export default function HomePage({ onRoomJoined }) {
     Math.random().toString(36).substring(2, 8).toUpperCase()
   );
   const [startingPurse, setStartingPurse] = useState(5000); // 5000 Lakhs = 50 Cr
-  const [minSquadSize, setMinSquadSize] = useState(7);
   const [maxSquadSize, setMaxSquadSize] = useState(35);
+  const [isCustomMaxSquad, setIsCustomMaxSquad] = useState(false);
   const [timerDuration, setTimerDuration] = useState(4);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,7 +102,6 @@ export default function HomePage({ onRoomJoined }) {
           roomId: customRoomCode.trim().toUpperCase(),
           adminName: adminName.trim() || 'Auctioneer',
           startingPurse: Number(startingPurse),
-          minSquadSize: Number(minSquadSize),
           maxSquadSize: Number(maxSquadSize),
           timerDuration: Number(timerDuration)
         })
@@ -363,32 +362,36 @@ export default function HomePage({ onRoomJoined }) {
                   Max Squad
                 </label>
                 <select
-                  value={maxSquadSize}
-                  onChange={(e) => setMaxSquadSize(Number(e.target.value))}
+                  value={isCustomMaxSquad ? 'custom' : maxSquadSize}
+                  onChange={(e) => {
+                    if (e.target.value === 'custom') {
+                      setIsCustomMaxSquad(true);
+                      return;
+                    }
+                    setIsCustomMaxSquad(false);
+                    setMaxSquadSize(Number(e.target.value));
+                  }}
                   className="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-purple-400"
                 >
                   <option value={18}>18 Players</option>
                   <option value={20}>20 Players</option>
                   <option value={35}>35 Players (Default)</option>
+                  <option value="custom">Customize Squad</option>
                 </select>
+                {isCustomMaxSquad && (
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={maxSquadSize}
+                    onChange={(e) => setMaxSquadSize(Math.max(1, Math.min(Number(e.target.value) || 1, 100)))}
+                    aria-label="Custom maximum squad size"
+                    className="w-full mt-2 bg-slate-900 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-purple-400"
+                  />
+                )}
               </div>
 
-              {/* Timer Duration */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
-                  Min Squad
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={maxSquadSize}
-                  value={minSquadSize}
-                  onChange={(e) => setMinSquadSize(Math.min(Number(e.target.value) || 1, maxSquadSize))}
-                  className="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:border-purple-400"
-                />
-              </div>
-
-              {/* Timer Duration */}
+              {/* Bid Timer */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                   Bid Timer

@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { useSocket } from '../context/SocketContext';
 import { formatLakhs } from '../utils/formatters';
+import { usePlayerImage } from '../utils/playerImages';
 import { Sparkles, Trophy, X, ShieldCheck } from 'lucide-react';
 
 export default function SoldCelebration() {
   const { lastSoldEvent, clearSoldEvent } = useSocket();
+  const soldPlayerImage = usePlayerImage(lastSoldEvent?.player);
 
   useEffect(() => {
     if (lastSoldEvent) {
@@ -67,7 +69,7 @@ export default function SoldCelebration() {
         {/* Player Avatar */}
         <div className="w-32 h-32 sm:w-36 sm:h-36 mx-auto rounded-2xl overflow-hidden border-2 border-amber-400 shadow-2xl mb-4 bg-slate-900">
           <img
-            src={player.imageURL}
+            src={soldPlayerImage || player.imageURL}
             alt={player.name}
             className="w-full h-full object-cover object-top"
           />

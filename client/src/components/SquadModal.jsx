@@ -1,8 +1,21 @@
 import React, { useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { formatLakhs, getRoleBadgeStyle } from '../utils/formatters';
+import { usePlayerImage } from '../utils/playerImages';
 import TeamBadge from './TeamBadge';
 import { X, Users, Globe2, Wallet, Award, Filter, CheckCircle2, ShieldCheck, Flame } from 'lucide-react';
+
+function SquadPlayerImage({ player }) {
+  const playerImage = usePlayerImage(player);
+
+  return (
+    <img
+      src={playerImage || player.imageURL}
+      alt={player.name}
+      className="w-full h-full object-cover group-hover:scale-105 transition"
+    />
+  );
+}
 
 export default function SquadModal({ isOpen, onClose, targetTeam = null }) {
   const { myTeam, roomState } = useSocket();
@@ -214,11 +227,7 @@ export default function SquadModal({ isOpen, onClose, targetTeam = null }) {
                     className="bg-slate-900/90 rounded-2xl p-3.5 border border-white/10 flex items-center gap-3 hover:border-amber-400/40 transition group"
                   >
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0 border border-white/10">
-                      <img
-                        src={player.imageURL}
-                        alt={player.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition"
-                      />
+                      <SquadPlayerImage player={player} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">

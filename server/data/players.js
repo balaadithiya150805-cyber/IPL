@@ -1,7 +1,11 @@
 // Pre-seeded list of 50+ Star IPL Players with complete stats, roles, and base prices
 // Base prices and amounts in Lakhs (e.g. 200 = 2.00 Crore INR, 150 = 1.50 Crore INR, 50 = 50 Lakhs INR)
 
-export const DEFAULT_PLAYER_POOL = [
+import { RECENT_IPL_PLAYERS } from './recentPlayers.js';
+import { ADDITIONAL_IPL_PLAYERS } from './additionalPlayers.js';
+import { IPL_SQUAD_PLAYERS } from './squadPlayers.js';
+
+const BASE_PLAYER_POOL = [
   // --- SET 1: MARQUEE BATTERS & ALL-ROUNDERS ---
   {
     id: 'p1',
@@ -860,5 +864,12 @@ export const DEFAULT_PLAYER_POOL = [
       economy: 0,
       specialty: 'Thala | 5-time IPL Trophy Winning Captain & Legendary Finisher'
     }
-  }
+  },
+  ...RECENT_IPL_PLAYERS,
+  ...ADDITIONAL_IPL_PLAYERS,
+  ...IPL_SQUAD_PLAYERS
 ];
+
+export const DEFAULT_PLAYER_POOL = [...new Map(
+  BASE_PLAYER_POOL.map(player => [player.name.trim().toLowerCase(), player])
+).values()];

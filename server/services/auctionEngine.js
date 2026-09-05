@@ -26,6 +26,15 @@ class AuctionEngine {
     return currentBidLakhs + this.calculateIncrement(currentBidLakhs);
   }
 
+  shufflePlayers(players) {
+    const shuffled = [...players];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+    }
+    return shuffled;
+  }
+
   // Calculate squad milestone indicators
   getSquadMilestones(squadSize, maxSquadSize = 35, minSquadSize = 7) {
     return {
@@ -79,6 +88,7 @@ class AuctionEngine {
     const pool = (customPlayers && customPlayers.length > 0)
       ? JSON.parse(JSON.stringify(customPlayers))
       : JSON.parse(JSON.stringify(DEFAULT_PLAYER_POOL));
+    const randomizedPool = this.shufflePlayers(pool);
 
     const roomState = {
       roomId: code,
@@ -98,7 +108,7 @@ class AuctionEngine {
         minReservePerSlot: 20 // 20 Lakhs per remaining minimum slot
       },
       teams: new Map(), // teamId -> TeamObject
-      playerPool: pool,
+      playerPool: randomizedPool,
       playerQueueIndex: 0,
       currentActivePlayer: null,
       currentBid: 0,
@@ -213,6 +223,9 @@ class AuctionEngine {
     
     let existingTeam = room.teams.get(finalTeamId);
     if (existingTeam) {
+      if (existingTeam.socketId && existingTeam.socketId !== socketId) {
+        return { error: `Team "${existingTeam.teamName}" is already taken in this room.` };
+      }
       existingTeam.socketId = socketId;
       existingTeam.ownerName = ownerName || existingTeam.ownerName;
     } else {

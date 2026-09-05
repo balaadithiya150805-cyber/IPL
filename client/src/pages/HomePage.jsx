@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { IPL_FRANCHISES, CUSTOM_BADGES } from '../utils/teams';
 import TeamBadge from '../components/TeamBadge';
@@ -22,6 +22,29 @@ export default function HomePage({ onRoomJoined }) {
   const [customTeamName, setCustomTeamName] = useState('');
   const [customBadge, setCustomBadge] = useState('🎓');
   const [customColor, setCustomColor] = useState('#f59e0b');
+  const [occupiedTeamIds, setOccupiedTeamIds] = useState([]);
+
+  useEffect(() => {
+    const roomCode = joinCode.trim().toUpperCase();
+    if (roomCode.length < 4) {
+      setOccupiedTeamIds([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    fetch(`${API_URL}/api/rooms/${roomCode}`)
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!cancelled) setOccupiedTeamIds((data?.room?.teams || []).map(team => team.teamId));
+      })
+      .catch(() => {
+        if (!cancelled) setOccupiedTeamIds([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [joinCode]);
 
   // Create Room State (Admin)
   const [adminName, setAdminName] = useState('Host Auctioneer');
@@ -242,13 +265,17 @@ export default function HomePage({ onRoomJoined }) {
                 <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto p-1.5 bg-slate-900/60 rounded-2xl border border-white/10">
                   {IPL_FRANCHISES.map((team) => {
                     const isSelected = selectedFranchiseId === team.id;
+                    const isOccupied = occupiedTeamIds.includes(team.id);
                     return (
                       <button
                         key={team.id}
                         type="button"
+                        disabled={isOccupied}
                         onClick={() => setSelectedFranchiseId(team.id)}
                         className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition ${
-                          isSelected
+                          isOccupied
+                            ? 'bg-slate-900/70 border-rose-500/40 opacity-50 cursor-not-allowed'
+                            : isSelected
                             ? 'bg-amber-500/20 border-amber-400 shadow-md shadow-amber-500/30'
                             : 'bg-slate-800/60 border-white/5 hover:border-white/20'
                         }`}
@@ -260,6 +287,9 @@ export default function HomePage({ onRoomJoined }) {
                           size="sm"
                         />
                         <span className="text-[10px] font-bold text-white tracking-wider">{team.shortCode}</span>
+                        <span className={`text-[8px] font-bold ${isOccupied ? 'text-rose-300' : 'text-emerald-300'}`}>
+                          {isOccupied ? 'TAKEN' : 'AVAILABLE'}
+                        </span>
                       </button>
                     );
                   })}

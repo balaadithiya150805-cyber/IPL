@@ -69,7 +69,7 @@ export default function SoldCelebration() {
         {/* Player Avatar */}
         <div className="w-32 h-32 sm:w-36 sm:h-36 mx-auto rounded-2xl overflow-hidden border-2 border-amber-400 shadow-2xl mb-4 bg-slate-900">
           <img
-            src={soldPlayerImage || player.imageURL}
+            src={soldPlayerImage || undefined}
             alt={player.name}
             className="w-full h-full object-cover object-top"
           />

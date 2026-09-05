@@ -10,7 +10,7 @@ function SquadPlayerImage({ player }) {
 
   return (
     <img
-      src={playerImage || player.imageURL}
+      src={playerImage || undefined}
       alt={player.name}
       className="w-full h-full object-cover group-hover:scale-105 transition"
     />
